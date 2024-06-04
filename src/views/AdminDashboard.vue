@@ -6,6 +6,11 @@
             <button @click="viewRoomUsage">
                 <img class="feature-icon" src="../assets/1.png" alt="自习室使用情况">
                 查看自习室使用情况
+            
+            </button>
+            <button @click="changeRoomUsage">
+                <img class="feature-icon" src="../assets/4.png" alt="自习室状态设置">
+                设置自习室状态
             </button>
         </div>
         <!-- 自习室列表模态框 -->
@@ -23,6 +28,19 @@
                 </div>
             </div>
         </div>
+        <div v-if="showChangeModal" class="modal-overlay" @click="closeRoomUsage">
+            <div class="modal-content" @click.stop>
+                <h2 class="modal-title">选择自习室以更改状态</h2>
+                <div class="rooms">
+                    <router-link v-for="room in rooms" :key="room" :to="{ name: 'room-change', params: { id: room } }"
+                        class="room">
+                        <div class="room-box">
+                            {{ room }}
+                        </div>
+                    </router-link>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -32,7 +50,8 @@ export default {
         return {
             showModal: false, // 控制模态框显示或隐藏
             showRoomDetail: false, // 控制自习室详细信息的显示
-            selectedRoom: null, // 当前选中的自习室
+            selectedRoom: null, //当前选中的自习室
+            showChangeModal: false,
         };
     },
     methods: {
@@ -46,6 +65,9 @@ export default {
             // 使用编程式导航跳转到自习室A101的页面
             this.$router.push({ name: 'room-layout', params: { id: roomId } });
         },
+        changeRoomUsage() {
+        this.showChangeModal = true; // 新增
+    },
     },
     computed: {
         rooms() {
