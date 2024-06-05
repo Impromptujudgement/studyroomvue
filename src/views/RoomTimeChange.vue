@@ -1,6 +1,6 @@
 <template>
     <div class="layout-container">
-        <h1 v-if="showTitle">座位状态管理</h1>
+        <h1 v-if="showTitle">座位开放时间管理</h1>
         <div class="classroom">
             <div v-for="seat in localSeats" :key="seat.id" :class="['seat', seat.status]">
                 <div class="chair-icon" @click="showPopover(seat, $event)"
@@ -15,7 +15,7 @@
             </div>
         </div>
         <div v-if="statusSet" class="success-popup">
-            状态更改成功！
+            开放时间更改成功！
         </div>
     </div>
 </template>

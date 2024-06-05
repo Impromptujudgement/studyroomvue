@@ -5,6 +5,7 @@ import Dashboard from '../views/UserDashboard.vue'; // 用户登录后看到的�
 import AdminDashborad from '../views/AdminDashboard.vue';
 import RoomLayout from '../views/RoomLayout.vue' // 导入自习室布局组件
 import RoomChange from '../views/RoomChange.vue'
+import RoomTimeChange from '../views/RoomTimeChange.vue'
 
 const routes = [
     { path: '/', component: Login },
@@ -19,6 +20,11 @@ const routes = [
         path: '/room/change/:id', // 动态路径参数
         name: 'room-change',
         component: RoomChange, 
+    },
+    {
+        path: '/room/timechange/:id', // 动态路径参数
+        name: 'room-timechange',
+        component: RoomTimeChange, 
     }
 ];
 

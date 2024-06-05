@@ -6,12 +6,25 @@
             <button @click="viewRoomUsage">
                 <img class="feature-icon" src="../assets/1.png" alt="自习室使用情况">
                 查看自习室使用情况
-            
+
             </button>
             <button @click="changeRoomUsage">
                 <img class="feature-icon" src="../assets/4.png" alt="自习室状态设置">
                 设置自习室状态
             </button>
+
+            <button @click="changeRoomTime">
+                <img class="feature-icon" src="../assets/5.png" alt="开放时间设置">
+                设置自习室开放时间
+            </button>
+            <div class="room-input">
+                <input v-model="newRoomId" placeholder="输入房间名称：">
+                <div class="buttons">
+                <button @click="addRoom(newRoomId)">添加房间</button>
+                <button @click="removeRoom(newRoomId)">删除房间</button>
+            </div>
+            </div>
+            <div v-if="message" class="message">{{ message }}</div>
         </div>
         <!-- 自习室列表模态框 -->
         <div v-if="showModal" class="modal-overlay" @click="closeRoomUsage">
@@ -41,6 +54,19 @@
                 </div>
             </div>
         </div>
+        <div v-if="showChangeTimeModal" class="modal-overlay" @click="closeRoomUsage">
+            <div class="modal-content" @click.stop>
+                <h2 class="modal-title">选择自习室更改开放时间</h2>
+                <div class="rooms">
+                    <router-link v-for="room in rooms" :key="room"
+                        :to="{ name: 'room-timechange', params: { id: room } }" class="room">
+                        <div class="room-box">
+                            {{ room }}
+                        </div>
+                    </router-link>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -52,9 +78,42 @@ export default {
             showRoomDetail: false, // 控制自习室详细信息的显示
             selectedRoom: null, //当前选中的自习室
             showChangeModal: false,
+            showChangeTimeModal: false,
+            rooms: [],
+            newRoomId: '',
+            message: '',
         };
     },
+    created() {
+        this.loadRooms(); // 页面加载时从localStorage中恢复rooms
+    },
     methods: {
+        generateRooms() {
+            let rooms = [];
+            for (let floor of ['A', 'B']) {
+                for (let number of [1, 2, 3]) {
+                    for (let room of Array.from({ length: 9 }, (_, i) => `${floor}${number}0${i + 1}`)) {
+                        rooms.push(room);
+                    }
+                }
+            }
+            return rooms;
+        },
+        saveRooms() {
+            localStorage.setItem('rooms', JSON.stringify(this.rooms)); // 将rooms保存到localStorage
+        },
+        loadRooms() {
+            const rooms = localStorage.getItem('rooms');
+            if (rooms) {
+                this.rooms = JSON.parse(rooms); // 从localStorage中加载rooms
+                this.sortRooms(); 
+            } else {
+                this.rooms = this.generateRooms(); // 如果localStorage中没有rooms数据，则生成默认的rooms列表
+            }
+        },
+        sortRooms() {
+            this.rooms.sort((a, b) => a.localeCompare(b)); // 按字母顺序排序
+        },
         viewRoomUsage() {
             this.showModal = true; // 显示模态框
         },
@@ -63,26 +122,44 @@ export default {
         },
         navigateToRoom(roomId) {
             // 使用编程式导航跳转到自习室A101的页面
-            this.$router.push({ name: 'room-layout', params: { id: roomId } });
+            if (roomId) {
+                this.$router.push({ name: 'room-layout', params: { id: roomId } });
+            }
+            else {
+                console.error("Missing roomId");
+            }
         },
         changeRoomUsage() {
-        this.showChangeModal = true; // 新增
-    },
-    },
-    computed: {
-        rooms() {
-            // 生成自习室列表
-            let rooms = [];
-            for (let floor of ['A', 'B']) {
-                for (let number of [1, 2, 3]) { // 增加序列以覆盖更多楼层
-                    for (let room of Array.from({ length: 9 }, (_, i) => `${floor}${number}0${i + 1}`)) {
-                        rooms.push(room);
-                    }
-                }
-            }
-            return rooms;
+            this.showChangeModal = true; // 新增
         },
-    }
+        changeRoomTime() {
+            this.showChangeTimeModal = true;
+        },
+        addRoom(roomId) {
+            if (roomId && !this.rooms.includes(roomId)) {
+                this.rooms.push(roomId);
+                this.newRoomId = '';
+                this.message = `房间 ${roomId} 添加成功`;
+                this.sortRooms();
+                this.saveRooms(); // 保存rooms到localStorage
+            }
+            else {
+                alert("Room ID is either empty or already exists");
+            }
+        },
+        removeRoom(roomId) {
+            if (this.rooms.includes(roomId)) {
+                this.rooms = this.rooms.filter(room => room !== roomId);
+                this.newRoomId = '';
+                this.message = `房间 ${roomId} 删除成功`;
+                this.sortRooms();
+                this.saveRooms(); // 保存默认的rooms列表到localStorage
+            }
+            else {
+                alert("Room ID does not exist");
+            }
+        }
+    },
 };
 </script>
 
@@ -241,38 +318,67 @@ button:hover {
 }
 
 .room-listing {
-  text-align: center; /* 中心对齐房间列表标题 */
+    text-align: center;
+    /* 中心对齐房间列表标题 */
 }
 
 .rooms {
-  display: flex;
-  flex-wrap: wrap; /* 允许项换行 */
-  gap: 16px; /* 项之间的间隙 */
-  justify-content: flex-start; /* 从左侧对齐 */
-  margin: 0 auto; /* 水平居中 */
-  max-width: 800px; /* 容器最大宽度，根据需要调整 */
+    display: flex;
+    flex-wrap: wrap;
+    /* 允许项换行 */
+    gap: 16px;
+    /* 项之间的间隙 */
+    justify-content: flex-start;
+    /* 从左侧对齐 */
+    margin: 0 auto;
+    /* 水平居中 */
+    max-width: 800px;
+    /* 容器最大宽度，根据需要调整 */
 }
 
 .room {
-  text-decoration: none; /* 去除超链接的下划线 */
-  flex: 0 0 calc(25% - 16px); /* 设置宽度为25%减去间隙，使得一行有4个 */
-  max-width: calc(25% - 16px); /* 最大宽度也设置为25%减去间隙 */
+    text-decoration: none;
+    /* 去除超链接的下划线 */
+    flex: 0 0 calc(25% - 16px);
+    /* 设置宽度为25%减去间隙，使得一行有4个 */
+    max-width: calc(25% - 16px);
+    /* 最大宽度也设置为25%减去间隙 */
 }
 
 .room-box {
-  display: block; /* 设置为块级元素 */
-  padding: 12px; /* 内边距，根据需要调整 */
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  color: #333;
-  text-align: center; /* 文字居中 */
-  height: 100px; /* 固定高度，根据需要调整 */
-  box-sizing: border-box; /* 把边框和内边距包含在宽度和高度内 */
-  transition: background-color 0.3s;
+    display: block;
+    /* 设置为块级元素 */
+    padding: 12px;
+    /* 内边距，根据需要调整 */
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    color: #333;
+    text-align: center;
+    /* 文字居中 */
+    height: 100px;
+    /* 固定高度，根据需要调整 */
+    box-sizing: border-box;
+    /* 把边框和内边距包含在宽度和高度内 */
+    transition: background-color 0.3s;
 }
 
 .room-box:hover {
-  background-color: #1a98ec;
+    background-color: #1a98ec;
 }
+
+.message {
+    color: red; /* 设置文字颜色为红色 */
+    font-weight: bold; /* 设置文字加粗 */
+    font-family: Arial, sans-serif; /* 设置字体样式 */
+    /* 可以根据需要添加其他样式，例如边框、背景色等 */
+}
+.room-input {
+    margin-top: 5px;
+    width: 100%; /* 使输入框和按钮组占据整个容器宽度 */
+}
+.buttons > button {
+    margin-bottom: 5px; /* 给按钮之间添加一些间距 */
+}
+
 </style>
