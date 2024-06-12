@@ -20,9 +20,9 @@
             <div class="room-input">
                 <input v-model="newRoomId" placeholder="输入房间名称：">
                 <div class="buttons">
-                <button @click="addRoom(newRoomId)">添加房间</button>
-                <button @click="removeRoom(newRoomId)">删除房间</button>
-            </div>
+                    <button @click="addRoom(newRoomId)">添加房间</button>
+                    <button @click="removeRoom(newRoomId)">删除房间</button>
+                </div>
             </div>
             <div v-if="message" class="message">{{ message }}</div>
         </div>
@@ -32,10 +32,10 @@
                 <h2 class="modal-title">自习室列表</h2>
                 <!-- 自习室列表 -->
                 <div class="rooms">
-                    <router-link v-for="room in rooms" :key="room" :to="{ name: 'room-layout', params: { id: room } }"
-                        class="room">
+                    <router-link v-for="room in rooms" :key="room.name"
+                        :to="{ name: 'room-layout', params: { id: room.name } }" class="room">
                         <div class="room-box">
-                            {{ room }}
+                            {{ room.name }} 
                         </div>
                     </router-link>
                 </div>
@@ -45,10 +45,10 @@
             <div class="modal-content" @click.stop>
                 <h2 class="modal-title">选择自习室以更改状态</h2>
                 <div class="rooms">
-                    <router-link v-for="room in rooms" :key="room" :to="{ name: 'room-change', params: { id: room } }"
-                        class="room">
+                    <router-link v-for="room in rooms" :key="room.name"
+                        :to="{ name: 'room-change', params: { id: room.name } }" class="room">
                         <div class="room-box">
-                            {{ room }}
+                            {{ room.name }} 
                         </div>
                     </router-link>
                 </div>
@@ -58,10 +58,10 @@
             <div class="modal-content" @click.stop>
                 <h2 class="modal-title">选择自习室更改开放时间</h2>
                 <div class="rooms">
-                    <router-link v-for="room in rooms" :key="room"
-                        :to="{ name: 'room-timechange', params: { id: room } }" class="room">
+                    <router-link v-for="room in rooms" :key="room.name"
+                        :to="{ name: 'room-timechange', params: { id: room.name } }" class="room">
                         <div class="room-box">
-                            {{ room }}
+                            {{ room.name }} 
                         </div>
                     </router-link>
                 </div>
@@ -93,7 +93,7 @@ export default {
             for (let floor of ['A', 'B']) {
                 for (let number of [1, 2, 3]) {
                     for (let room of Array.from({ length: 9 }, (_, i) => `${floor}${number}0${i + 1}`)) {
-                        rooms.push(room);
+                        rooms.push({ name: room, openTime: '00:00', closeTime: '24:00' });
                     }
                 }
             }
@@ -106,7 +106,7 @@ export default {
             const rooms = localStorage.getItem('rooms');
             if (rooms) {
                 this.rooms = JSON.parse(rooms); // 从localStorage中加载rooms
-                this.sortRooms(); 
+                this.sortRooms();
             } else {
                 this.rooms = this.generateRooms(); // 如果localStorage中没有rooms数据，则生成默认的rooms列表
             }
@@ -115,6 +115,13 @@ export default {
             this.rooms.sort((a, b) => a.localeCompare(b)); // 按字母顺序排序
         },
         viewRoomUsage() {
+            // console.log(this.rooms); // 打印整个房间数组
+            for (let room of this.rooms) {
+                // console.log(room.name);// 打印每个房间的名
+                // console.log(room.openTime);
+                console.log(room.closeTime);
+
+            }
             this.showModal = true; // 显示模态框
         },
         closeRoomUsage() {
@@ -137,11 +144,12 @@ export default {
         },
         addRoom(roomId) {
             if (roomId && !this.rooms.includes(roomId)) {
-                this.rooms.push(roomId);
+                this.rooms.push({ name: roomId, openTime: '00:00', closeTime: '24:00' });
                 this.newRoomId = '';
                 this.message = `房间 ${roomId} 添加成功`;
                 this.sortRooms();
                 this.saveRooms(); // 保存rooms到localStorage
+                this.message = '';
             }
             else {
                 alert("Room ID is either empty or already exists");
@@ -149,11 +157,12 @@ export default {
         },
         removeRoom(roomId) {
             if (this.rooms.includes(roomId)) {
-                this.rooms = this.rooms.filter(room => room !== roomId);
+                this.rooms = this.rooms.filter(room => room.name !== roomId);
                 this.newRoomId = '';
                 this.message = `房间 ${roomId} 删除成功`;
                 this.sortRooms();
                 this.saveRooms(); // 保存默认的rooms列表到localStorage
+                this.message = '';
             }
             else {
                 alert("Room ID does not exist");
@@ -368,17 +377,23 @@ button:hover {
 }
 
 .message {
-    color: red; /* 设置文字颜色为红色 */
-    font-weight: bold; /* 设置文字加粗 */
-    font-family: Arial, sans-serif; /* 设置字体样式 */
+    color: red;
+    /* 设置文字颜色为红色 */
+    font-weight: bold;
+    /* 设置文字加粗 */
+    font-family: Arial, sans-serif;
+    /* 设置字体样式 */
     /* 可以根据需要添加其他样式，例如边框、背景色等 */
 }
+
 .room-input {
     margin-top: 5px;
-    width: 100%; /* 使输入框和按钮组占据整个容器宽度 */
-}
-.buttons > button {
-    margin-bottom: 5px; /* 给按钮之间添加一些间距 */
+    width: 100%;
+    /* 使输入框和按钮组占据整个容器宽度 */
 }
 
+.buttons>button {
+    margin-bottom: 5px;
+    /* 给按钮之间添加一些间距 */
+}
 </style>
